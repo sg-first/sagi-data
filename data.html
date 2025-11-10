@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《我的三中恋爱物语果然没问题》运营数据分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+        
+        .chart-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .device-breakdown {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .device-item {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .device-item .percentage {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .device-item .label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>《我的三中恋爱物语果然没问题》运营数据分析</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>至少完成一天玩家数</h3>
+                <div class="value" id="totalPlayers">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>中位数游戏时长</h3>
+                <div class="value" id="avgPlayTime">0分钟</div>
+            </div>
+            <div class="stat-card">
+                <h3>明日方舟最高等级玩家</h3>
+                <div class="value" id="maxLevel">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>最受欢迎女主角</h3>
+                <div class="value" id="popularGirl">-</div>
+            </div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h2 class="chart-title">玩家属性分布</h2>
+                <canvas id="playerStatsChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">女主角好感度对比</h2>
+                <canvas id="heroineAffinityChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">设备类型分布</h2>
+                <canvas id="deviceChart"></canvas>
+                <div class="device-breakdown" id="deviceBreakdown"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">玩家进度分布</h2>
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2 class="chart-title">玩家明日方舟等级分布</h2>
+            <canvas id="levelChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2 class="chart-title">顶级玩家排行榜</h2>
+            <table id="topPlayersTable">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>玩家ID</th>
+                        <th>方舟等级</th>
+                        <th>体力</th>
+                        <th>现金</th>
+                        <th>艺术值</th>
+                        <th>游戏策划</th>
+                        <th>技术值</th>
+                        <th>游戏时长</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 原始数据
+        const rawData = `{'@timestamp': '2025-11-03 12:28:04.536', 'level': 8192, 'uin': '1762143823150', 'sessionId': 'session-576e7449cf9a40beb4907e7e2d22317b', 'aid': '95ecc64a-f6ed-4c21-a82b-308a735540ed', 'country': '中国', 'province': '', 'city': '', 'isp': '中国移动', 'ip': '2409:8931:bc3d:724:30ff:24ff:fe6c:abc9', 'userAgent': 'Mozilla/5.0 (Linux; Android 14; iQOO Z6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.200 Mobile Safari/537.36 VivoBrowser/26.7.0.0', 'netType': 4, 'brand': 'Linux', 'device': 'iQOO Z6', 'platform': 1, 'os': 'Android 14', 'browser': 'Chrome131.0.6778.200', 'engine': 'AppleWebKit537.36', 'vp': '360 * 654', 'sr': '360 * 796', 'env': 'production', 'ext1': '{\\"player\\":{\\"体力\\":22,\\"cash\\":0,\\"charm\\":0,\\"tech\\":0,\\"art\\":15,\\"mana\\":8,\\"arkLv\\":1},\\"heroines\\":{\\"zhi\\":{\\"affinity\\":50,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"sagi\\":{\\"affinity\\":47,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"tang\\":{\\"affinity\\":30,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0}}}'}
+{'@timestamp': '2025-11-03 12:28:31.589', 'level': 8192, 'uin': '1762143407189', 'sessionId': 'session-5e6581e327044441b2433bb5d44c03c7', 'aid': 'a0ed7531-53b0-4c0e-bc7e-c3de0b00fe2b', 'country': '中国', 'province': '', 'city': '', 'isp': '中国电信', 'ip': '240e:390:4947:add0:a92a:b5e0:40f7:3853', 'userAgent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36', 'netType': 4, 'brand': 'Windows', 'device': 'Windows 7', 'platform': 3, 'os': 'Windows 7', 'browser': 'Chrome86.0.4240.198', 'engine': 'AppleWebKit537.36', 'vp': '1335 * 794', 'sr': '1920 * 1080', 'env': 'production', 'ext1': '{\\"player\\":{\\"体力\\":23,\\"cash\\":26,\\"charm\\":5,\\"tech\\":0,\\"art\\":15,\\"mana\\":7,\\"arkLv\\":0},\\"heroines\\":{\\"zhi\\":{\\"affinity\\":53,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"sagi\\":{\\"affinity\\":50,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"tang\\":{\\"affinity\\":30,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0}}}'}
+`
+        // 解析数据
+        function parseData(rawText) {
+            const lines = rawText.trim().split('\n');
+            let data = [];
+            
+            lines.forEach(line => {
+                try {
+                    let parsed = eval('(' + line + ')');
+                    parsed.ext1 = JSON.parse(parsed.ext1.replace(/\\"/g, '"'));
+                    data.push(parsed);
+                } catch (e) {
+                    console.error('解析失败:', line);
+                }
+            });
+            
+            return data;
+        }
+        
+        let gameData = parseData(rawData);
+        
+        // 分析数据
+        function analyzeData(data) {
+            const analysis = {
+                totalPlayers: new Set(data.map(d => d.uin)).size,
+                avgPlayTime: 0,
+                maxLevel: 0,
+                popularGirl: '',
+                playerStats: {
+                    体力: [],
+                    cash: [],
+                    charm: [],
+                    tech: [],
+                    art: [],
+                    mana: []
+                },
+                heroineAffinity: {
+                    zhi: [],
+                    sagi: [],
+                    tang: []
+                },
+                devices: {},
+                levels: {},
+                progress: {
+                    zhi: [],
+                    sagi: [],
+                    tang: []
+                },
+                playTimes: [] // 新增：存储每个玩家的游戏时长
+            };
+            
+            // 计算统计数据
+            data.forEach(d => {
+                const player = d.ext1.player;
+                const heroines = d.ext1.heroines;
+                
+                // 计算游戏时长：(uin - @timestamp时间戳数值)/60
+                try {
+                    // 将uin转换为数字（去除可能的非数字字符）
+                    const uinNum = parseInt(d.uin.replace(/\D/g, ''));
+                    
+                    // 将@timestamp字符串转换为时间戳（毫秒）
+                    const timestampStr = d['@timestamp'];
+                    const timestamp = new Date(timestampStr).getTime();
+                    
+                    // 计算游戏时长（分钟）
+                    if (!isNaN(uinNum) && !isNaN(timestamp)) {
+                        const playTime = Math.abs(uinNum - timestamp) / (1000 * 60);
+                        analysis.playTimes.push(playTime);
+                        d.playTime = playTime;
+                    }
+                } catch (e) {
+                    console.error('计算游戏时长失败:', e);
+                }
+                
+                // 玩家属性
+                analysis.playerStats.体力.push(player.体力);
+                analysis.playerStats.cash.push(player.cash);
+                analysis.playerStats.charm.push(player.charm);
+                analysis.playerStats.tech.push(player.tech);
+                analysis.playerStats.art.push(player.art);
+                analysis.playerStats.mana.push(player.mana);
+                
+                // 女主角好感度
+                analysis.heroineAffinity.zhi.push(heroines.zhi.affinity);
+                analysis.heroineAffinity.sagi.push(heroines.sagi.affinity);
+                analysis.heroineAffinity.tang.push(heroines.tang.affinity);
+                
+                // 设备统计
+                const device = d.device || 'Unknown';
+                analysis.devices[device] = (analysis.devices[device] || 0) + 1;
+                
+                // 等级统计
+                const level = player.arkLv;
+                analysis.levels[level] = (analysis.levels[level] || 0) + 1;
+                
+                // 进度统计
+                analysis.progress.zhi.push(heroines.zhi.projectProgress);
+                analysis.progress.sagi.push(heroines.sagi.projectProgress);
+                analysis.progress.tang.push(heroines.tang.projectProgress);
+                
+                // 最高等级
+                if (player.arkLv > analysis.maxLevel) {
+                    analysis.maxLevel = player.arkLv;
+                }
+            });
+            
+            // 最受欢迎女主角
+            const avgAffinity = {
+                zhi: analysis.heroineAffinity.zhi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.zhi.length,
+                sagi: analysis.heroineAffinity.sagi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.sagi.length,
+                tang: analysis.heroineAffinity.tang.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.tang.length
+            };
+            analysis.popularGirl = Object.keys(avgAffinity).reduce((a, b) => avgAffinity[a] > avgAffinity[b] ? a : b);
+            
+            // 计算中位数游戏时长
+            if (analysis.playTimes.length > 0) {
+                // 对游戏时长数组进行排序
+                const sortedTimes = [...analysis.playTimes].sort((a, b) => a - b);
+                const mid = Math.floor(sortedTimes.length / 2);
+                // 如果长度为奇数，中位数是中间的数；如果是偶数，是中间两个数的平均值
+                analysis.medianPlayTime = sortedTimes.length % 2 !== 0 ? 
+                    sortedTimes[mid] : 
+                    Math.round((sortedTimes[mid - 1] + sortedTimes[mid]) / 2);
+            } else {
+                analysis.medianPlayTime = 0;
+            }
+            
+            return analysis;
+        }
+        
+        const analysis = analyzeData(gameData);
+        
+        // 更新统计卡片
+        document.getElementById('totalPlayers').textContent = analysis.totalPlayers;
+        document.getElementById('avgPlayTime').textContent = Math.floor(analysis.medianPlayTime) + '分钟';
+        document.getElementById('maxLevel').textContent = analysis.maxLevel;
+        document.getElementById('popularGirl').textContent = analysis.popularGirl ? (analysis.popularGirl === 'zhi' ? '至' : 
+                                                                analysis.popularGirl === 'sagi' ? 'Sagi' : 'Tang') : '暂无';
+        
+        // 玩家属性分布图
+        const playerStatsCtx = document.getElementById('playerStatsChart').getContext('2d');
+        new Chart(playerStatsCtx, {
+            type: 'radar',
+            data: {
+                labels: ['体力', '现金', '情商', '技术', '艺术', '游戏策划'],
+                datasets: [{
+                    label: '平均值',
+                    data: [
+                        analysis.playerStats.体力.reduce((a, b) => a + b, 0) / analysis.playerStats.体力.length,
+                        analysis.playerStats.cash.reduce((a, b) => a + b, 0) / analysis.playerStats.cash.length / 100, // 缩放
+                        analysis.playerStats.charm.reduce((a, b) => a + b, 0) / analysis.playerStats.charm.length * 10, // 缩放
+                        analysis.playerStats.tech.reduce((a, b) => a + b, 0) / analysis.playerStats.tech.length,
+                        analysis.playerStats.art.reduce((a, b) => a + b, 0) / analysis.playerStats.art.length,
+                        analysis.playerStats.mana.reduce((a, b) => a + b, 0) / analysis.playerStats.mana.length
+                    ],
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(102, 126, 234, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
+                        pointLabels: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+        
+        // 女主角好感度对比
+        const heroineAffinityCtx = document.getElementById('heroineAffinityChart').getContext('2d');
+        new Chart(heroineAffinityCtx, {
+            type: 'bar',
+            data: {
+                labels: ['至', 'Sagi', 'Tang'],
+                datasets: [{
+                    label: '平均好感度',
+                    data: [
+                        analysis.heroineAffinity.zhi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.zhi.length,
+                        analysis.heroineAffinity.sagi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.sagi.length,
+                        analysis.heroineAffinity.tang.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.tang.length
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 设备类型分布
+        const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+        const deviceLabels = Object.keys(analysis.devices);
+        const deviceData = Object.values(analysis.devices);
+        
+        new Chart(deviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: deviceLabels,
+                datasets: [{
+                    data: deviceData,
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(118, 75, 162, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(102, 126, 234, 1)',
+                        'rgba(118, 75, 162, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 设备分布详情
+        const deviceBreakdown = document.getElementById('deviceBreakdown');
+        const totalDevices = deviceData.reduce((a, b) => a + b, 0);
+        deviceLabels.forEach((label, index) => {
+            const percentage = (deviceData[index] / totalDevices * 100).toFixed(1);
+            const deviceItem = document.createElement('div');
+            deviceItem.className = 'device-item';
+            deviceItem.innerHTML = `
+                <div class="percentage">${percentage}%</div>
+                <div class="label">${label}</div>
+            `;
+            deviceBreakdown.appendChild(deviceItem);
+        });
+        
+        // 玩家进度分布
+        const progressCtx = document.getElementById('progressChart').getContext('2d');
+        new Chart(progressCtx, {
+            type: 'line',
+            data: {
+                labels: ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'],
+                datasets: [
+                    {
+                        label: '至',
+                        data: [
+                            analysis.progress.zhi.filter(p => p <= 20).length,
+                            analysis.progress.zhi.filter(p => p > 20 && p <= 40).length,
+                            analysis.progress.zhi.filter(p => p > 40 && p <= 60).length,
+                            analysis.progress.zhi.filter(p => p > 60 && p <= 80).length,
+                            analysis.progress.zhi.filter(p => p > 80).length
+                        ],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sagi',
+                        data: [
+                            analysis.progress.sagi.filter(p => p <= 20).length,
+                            analysis.progress.sagi.filter(p => p > 20 && p <= 40).length,
+                            analysis.progress.sagi.filter(p => p > 40 && p <= 60).length,
+                            analysis.progress.sagi.filter(p => p > 60 && p <= 80).length,
+                            analysis.progress.sagi.filter(p => p > 80).length
+                        ],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Tang',
+                        data: [
+                            analysis.progress.tang.filter(p => p <= 20).length,
+                            analysis.progress.tang.filter(p => p > 20 && p <= 40).length,
+                            analysis.progress.tang.filter(p => p > 40 && p <= 60).length,
+                            analysis.progress.tang.filter(p => p > 60 && p <= 80).length,
+                            analysis.progress.tang.filter(p => p > 80).length
+                        ],
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 玩家明日方舟等级分布
+        const levelCtx = document.getElementById('levelChart').getContext('2d');
+        const levelLabels = Object.keys(analysis.levels).sort((a, b) => a - b);
+        const levelData = levelLabels.map(level => analysis.levels[level]);
+        
+        new Chart(levelCtx, {
+            type: 'bar',
+            data: {
+                labels: levelLabels,
+                datasets: [{
+                    label: '玩家数量',
+                    data: levelData,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 顶级玩家排行榜 - 先根据uin去重，每个玩家只保留一条记录
+        const uniqueGameData = [...new Map(gameData.map(d => [d.uin, d])).values()];
+        const topPlayers = uniqueGameData
+            .map(d => ({
+                uin: d.uin,
+                device: d.device,
+                level: d.ext1.player.arkLv,
+                体力: d.ext1.player.体力,
+                cash: d.ext1.player.cash,
+                art: d.ext1.player.art,
+                mana: d.ext1.player.mana,
+                tech: d.ext1.player.tech,
+                playTime: d.playTime
+            }))
+            .sort((a, b) => b.cash - a.cash)
+            .slice(0, 20);
+        
+        const tbody = document.querySelector('#topPlayersTable tbody');
+        topPlayers.forEach((player, index) => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${player.uin} (${player.device})</td>
+                <td>${player.level}</td>
+                <td>${player.体力}</td>
+                <td>${player.cash}</td>
+                <td>${player.art}</td>
+                <td>${player.mana}</td>
+                <td>${player.tech}</td>
+                <td>${Math.floor(player.playTime)}分钟</td>
+            `;
+        });
+        
+        // 添加动画效果 - 仅对数字内容进行动画
+        const statValues = document.querySelectorAll('.stat-card .value');
+        statValues.forEach((element, index) => {
+            const textContent = element.textContent;
+            // 检查内容是否为数字（包括带单位的数字，如"1分钟"）
+            const numMatch = textContent.match(/^(\d+)/);
+            if (numMatch) {
+                const finalValue = parseInt(numMatch[1]);
+                const unit = textContent.slice(numMatch[0].length);
+                let currentValue = 0;
+                const increment = finalValue / 50;
+                
+                const timer = setInterval(() => {
+                    currentValue += increment;
+                    if (currentValue >= finalValue) {
+                        element.textContent = finalValue + unit;
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.floor(currentValue) + unit;
+                    }
+                }, 30);
+            }
+            // 非数字内容保持原样，不进行动画处理
+        });
+    </script>
+</body>
+</html>```
