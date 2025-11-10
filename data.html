@@ -300,14 +300,20 @@
                 heroineAffinity: {
                     zhi: [],
                     sagi: [],
-                    tang: []
+                    tang: [],
+                    hei: [],
+                    yi: [],
+                    EW: []
                 },
                 devices: {},
                 levels: {},
                 progress: {
                     zhi: [],
                     sagi: [],
-                    tang: []
+                    tang: [],
+                    hei: [],
+                    yi: [],
+                    EW: []
                 },
                 playTimes: [] // 新增：存储每个玩家的游戏时长
             };
@@ -348,6 +354,9 @@
                 analysis.heroineAffinity.zhi.push(heroines.zhi.affinity);
                 analysis.heroineAffinity.sagi.push(heroines.sagi.affinity);
                 analysis.heroineAffinity.tang.push(heroines.tang.affinity);
+                analysis.heroineAffinity.hei.push(heroines.hei ? heroines.hei.affinity : 0);
+                analysis.heroineAffinity.yi.push(heroines.yi ? heroines.yi.affinity : 0);
+                analysis.heroineAffinity.EW.push(heroines.EW ? heroines.EW.affinity : 0);
                 
                 // 设备统计
                 const device = d.device || 'Unknown';
@@ -361,6 +370,9 @@
                 analysis.progress.zhi.push(heroines.zhi.projectProgress);
                 analysis.progress.sagi.push(heroines.sagi.projectProgress);
                 analysis.progress.tang.push(heroines.tang.projectProgress);
+                analysis.progress.hei.push(heroines.hei ? heroines.hei.projectProgress : 0);
+                analysis.progress.yi.push(heroines.yi ? heroines.yi.projectProgress : 0);
+                analysis.progress.EW.push(heroines.EW ? heroines.EW.projectProgress : 0);
                 
                 // 最高等级
                 if (player.arkLv > analysis.maxLevel) {
@@ -370,10 +382,13 @@
             
             // 最受欢迎女主角
             const avgAffinity = {
-                zhi: analysis.heroineAffinity.zhi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.zhi.length,
-                sagi: analysis.heroineAffinity.sagi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.sagi.length,
-                tang: analysis.heroineAffinity.tang.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.tang.length
-            };
+                    zhi: analysis.heroineAffinity.zhi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.zhi.length,
+                    sagi: analysis.heroineAffinity.sagi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.sagi.length,
+                    tang: analysis.heroineAffinity.tang.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.tang.length,
+                    hei: analysis.heroineAffinity.hei.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.hei.length,
+                    yi: analysis.heroineAffinity.yi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.yi.length,
+                    EW: analysis.heroineAffinity.EW.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.EW.length
+                };
             analysis.popularGirl = Object.keys(avgAffinity).reduce((a, b) => avgAffinity[a] > avgAffinity[b] ? a : b);
             
             // 计算中位数游戏时长
@@ -455,23 +470,32 @@
         new Chart(heroineAffinityCtx, {
             type: 'bar',
             data: {
-                labels: ['至', 'Sagi', 'Tang'],
+                labels: ['至', 'Sagi', '躺啊堂', '黑毛黑框厨', '易先生', '维什戴尔'],
                 datasets: [{
                     label: '平均好感度',
                     data: [
                         analysis.heroineAffinity.zhi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.zhi.length,
                         analysis.heroineAffinity.sagi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.sagi.length,
-                        analysis.heroineAffinity.tang.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.tang.length
+                        analysis.heroineAffinity.tang.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.tang.length,
+                        analysis.heroineAffinity.hei.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.hei.length,
+                        analysis.heroineAffinity.yi.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.yi.length,
+                        analysis.heroineAffinity.EW.reduce((a, b) => a + b, 0) / analysis.heroineAffinity.EW.length
                     ],
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.8)',
                         'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)'
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)',
+                        'rgba(255, 159, 64, 0.8)'
                     ],
                     borderColor: [
                         'rgba(255, 99, 132, 1)',
                         'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)'
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
                     ],
                     borderWidth: 2
                 }]
@@ -590,10 +614,31 @@
                         tension: 0.4
                     },
                     {
-                        label: 'Tang',
+                        label: '躺啊堂',
                         data: getProgressDistribution(analysis.progress.tang),
                         borderColor: 'rgba(255, 206, 86, 1)',
                         backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: '黑毛黑框厨',
+                        data: getProgressDistribution(analysis.progress.hei),
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: '易先生',
+                        data: getProgressDistribution(analysis.progress.yi),
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: '维什戴尔',
+                        data: getProgressDistribution(analysis.progress.EW),
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
                         tension: 0.4
                     }
                 ]
