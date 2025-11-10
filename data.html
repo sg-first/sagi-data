@@ -558,28 +558,51 @@
         });
         
         // 玩家进度分布
+        // 创建一个函数来生成进度分布数据，避免重复代码
+        function getProgressDistribution(progressData) {
+            return [
+                progressData.filter(p => p <= 20).length,
+                progressData.filter(p => p > 20 && p <= 40).length,
+                progressData.filter(p => p > 40 && p <= 60).length,
+                progressData.filter(p => p > 60 && p <= 80).length,
+                progressData.filter(p => p > 80).length
+            ];
+        }
+        
         const progressCtx = document.getElementById('progressChart').getContext('2d');
         new Chart(progressCtx, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: ['至', 'Sagi', 'Tang'],
-                datasets: [{
-                    label: '平均进度',
-                    data: [
-                        analysis.progress.zhi.reduce((a, b) => a + b, 0) / analysis.progress.zhi.length,
-                        analysis.progress.sagi.reduce((a, b) => a + b, 0) / analysis.progress.sagi.length,
-                        analysis.progress.tang.reduce((a, b) => a + b, 0) / analysis.progress.tang.length
-                    ],
-                    backgroundColor: 'rgba(118, 75, 162, 0.8)',
-                    borderColor: 'rgba(118, 75, 162, 1)',
-                    borderWidth: 2
-                }]
+                labels: ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'],
+                datasets: [
+                    {
+                        label: '至',
+                        data: getProgressDistribution(analysis.progress.zhi),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Sagi',
+                        data: getProgressDistribution(analysis.progress.sagi),
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Tang',
+                        data: getProgressDistribution(analysis.progress.tang),
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        tension: 0.4
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'top',
                     }
                 },
                 scales: {
