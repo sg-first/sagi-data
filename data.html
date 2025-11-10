@@ -246,10 +246,12 @@
             return data;
         }
         
+        const dataFileName = '完整结算数据.txt';
+
         // 读取本地文件
         function loadDataFile() {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', '完整结算数据.txt', true);
+            xhr.open('GET', dataFileName, true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     gameData = parseData(xhr.responseText);
@@ -265,7 +267,7 @@
         
         // 尝试使用fetch API
         function tryFetchData() {
-            fetch('完整结算数据.txt')
+            fetch(dataFileName)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -415,8 +417,15 @@
         document.getElementById('totalPlayers').textContent = analysis.totalPlayers;
         document.getElementById('avgPlayTime').textContent = Math.floor(analysis.medianPlayTime) + '分钟';
         document.getElementById('maxLevel').textContent = analysis.maxLevel;
-        document.getElementById('popularGirl').textContent = analysis.popularGirl ? (analysis.popularGirl === 'zhi' ? '至' : 
-                                                                analysis.popularGirl === 'sagi' ? 'Sagi' : 'Tang') : '暂无';
+        const characterNameMap = {
+            zhi: '至',
+            sagi: 'Sagi',
+            tang: '躺啊堂',
+            hei: '黑毛黑框厨',
+            yi: '易先生',
+            EW: '维什戴尔'
+        };
+        document.getElementById('popularGirl').textContent = characterNameMap[analysis.popularGirl];
         
         // 玩家属性分布图
         const playerStatsCtx = document.getElementById('playerStatsChart').getContext('2d');
