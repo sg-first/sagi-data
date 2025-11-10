@@ -204,11 +204,6 @@
         </div>
         
         <div class="chart-container">
-            <h2 class="chart-title">玩家明日方舟等级分布</h2>
-            <canvas id="levelChart"></canvas>
-        </div>
-        
-        <div class="chart-container">
             <h2 class="chart-title">顶级玩家排行榜</h2>
             <table id="topPlayersTable">
                 <thead>
@@ -230,10 +225,9 @@
     </div>
 
     <script>
-        // 原始数据
-        const rawData = `{'@timestamp': '2025-11-03 12:28:04.536', 'level': 8192, 'uin': '1762143823150', 'sessionId': 'session-576e7449cf9a40beb4907e7e2d22317b', 'aid': '95ecc64a-f6ed-4c21-a82b-308a735540ed', 'country': '中国', 'province': '', 'city': '', 'isp': '中国移动', 'ip': '2409:8931:bc3d:724:30ff:24ff:fe6c:abc9', 'userAgent': 'Mozilla/5.0 (Linux; Android 14; iQOO Z6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.200 Mobile Safari/537.36 VivoBrowser/26.7.0.0', 'netType': 4, 'brand': 'Linux', 'device': 'iQOO Z6', 'platform': 1, 'os': 'Android 14', 'browser': 'Chrome131.0.6778.200', 'engine': 'AppleWebKit537.36', 'vp': '360 * 654', 'sr': '360 * 796', 'env': 'production', 'ext1': '{\\"player\\":{\\"体力\\":22,\\"cash\\":0,\\"charm\\":0,\\"tech\\":0,\\"art\\":15,\\"mana\\":8,\\"arkLv\\":1},\\"heroines\\":{\\"zhi\\":{\\"affinity\\":50,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"sagi\\":{\\"affinity\\":47,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"tang\\":{\\"affinity\\":30,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0}}}'}
-{'@timestamp': '2025-11-03 12:28:31.589', 'level': 8192, 'uin': '1762143407189', 'sessionId': 'session-5e6581e327044441b2433bb5d44c03c7', 'aid': 'a0ed7531-53b0-4c0e-bc7e-c3de0b00fe2b', 'country': '中国', 'province': '', 'city': '', 'isp': '中国电信', 'ip': '240e:390:4947:add0:a92a:b5e0:40f7:3853', 'userAgent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36', 'netType': 4, 'brand': 'Windows', 'device': 'Windows 7', 'platform': 3, 'os': 'Windows 7', 'browser': 'Chrome86.0.4240.198', 'engine': 'AppleWebKit537.36', 'vp': '1335 * 794', 'sr': '1920 * 1080', 'env': 'production', 'ext1': '{\\"player\\":{\\"体力\\":23,\\"cash\\":26,\\"charm\\":5,\\"tech\\":0,\\"art\\":15,\\"mana\\":7,\\"arkLv\\":0},\\"heroines\\":{\\"zhi\\":{\\"affinity\\":53,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"sagi\\":{\\"affinity\\":50,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0},\\"tang\\":{\\"affinity\\":30,\\"jealousy\\":10,\\"cash\\":0,\\"fame\\":0,\\"projectProgress\\":0}}}'}
-`
+        // 从文件读取数据
+        let gameData = [];
+        
         // 解析数据
         function parseData(rawText) {
             const lines = rawText.trim().split('\n');
@@ -252,9 +246,43 @@
             return data;
         }
         
-        let gameData = parseData(rawData);
+        // 读取本地文件
+        function loadDataFile() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '完整结算数据.txt', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    gameData = parseData(xhr.responseText);
+                    initDashboard(); // 文件加载完成后初始化仪表盘
+                } else if (xhr.readyState === 4) {
+                    console.error('文件加载失败:', xhr.status);
+                    // 如果无法通过XHR加载（可能是浏览器安全限制），尝试使用fetch
+                    tryFetchData();
+                }
+            };
+            xhr.send();
+        }
         
-        // 分析数据
+        // 尝试使用fetch API
+        function tryFetchData() {
+            fetch('完整结算数据.txt')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    gameData = parseData(data);
+                    initDashboard();
+                })
+                .catch(error => {
+                    console.error('Fetch失败:', error);
+                    alert('无法加载数据文件。请确保在本地服务器环境中运行此页面，或者将完整结算数据.txt文件放在同一目录下。');
+                });
+        }
+        
+        // 分析数据函数（移到外部以避免作用域问题）
         function analyzeData(data) {
             const analysis = {
                 totalPlayers: new Set(data.map(d => d.uin)).size,
@@ -364,7 +392,9 @@
             return analysis;
         }
         
-        const analysis = analyzeData(gameData);
+        // 将所有初始化代码放在一个函数中
+        function initDashboard() {
+            const analysis = analyzeData(gameData);
         
         // 更新统计卡片
         document.getElementById('totalPlayers').textContent = analysis.totalPlayers;
@@ -501,23 +531,23 @@
                 responsive: true,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            font: {
-                                size: 14
-                            }
-                        }
+                        position: 'right'
                     }
                 }
             }
         });
         
-        // 设备分布详情
+        // 更新设备分布数据
         const deviceBreakdown = document.getElementById('deviceBreakdown');
-        const totalDevices = deviceData.reduce((a, b) => a + b, 0);
+        deviceBreakdown.innerHTML = '';
+        
+        // 计算总设备数量（应该等于总数据行数）
+        const totalDeviceCount = deviceData.reduce((sum, count) => sum + count, 0);
+        
         deviceLabels.forEach((label, index) => {
-            const percentage = (deviceData[index] / totalDevices * 100).toFixed(1);
+            // 使用正确的分母计算百分比
+            const percentage = totalDeviceCount > 0 ? 
+                ((deviceData[index] / totalDeviceCount) * 100).toFixed(1) : '0.0';
             const deviceItem = document.createElement('div');
             deviceItem.className = 'device-item';
             deviceItem.innerHTML = `
@@ -530,88 +560,18 @@
         // 玩家进度分布
         const progressCtx = document.getElementById('progressChart').getContext('2d');
         new Chart(progressCtx, {
-            type: 'line',
-            data: {
-                labels: ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'],
-                datasets: [
-                    {
-                        label: '至',
-                        data: [
-                            analysis.progress.zhi.filter(p => p <= 20).length,
-                            analysis.progress.zhi.filter(p => p > 20 && p <= 40).length,
-                            analysis.progress.zhi.filter(p => p > 40 && p <= 60).length,
-                            analysis.progress.zhi.filter(p => p > 60 && p <= 80).length,
-                            analysis.progress.zhi.filter(p => p > 80).length
-                        ],
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Sagi',
-                        data: [
-                            analysis.progress.sagi.filter(p => p <= 20).length,
-                            analysis.progress.sagi.filter(p => p > 20 && p <= 40).length,
-                            analysis.progress.sagi.filter(p => p > 40 && p <= 60).length,
-                            analysis.progress.sagi.filter(p => p > 60 && p <= 80).length,
-                            analysis.progress.sagi.filter(p => p > 80).length
-                        ],
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Tang',
-                        data: [
-                            analysis.progress.tang.filter(p => p <= 20).length,
-                            analysis.progress.tang.filter(p => p > 20 && p <= 40).length,
-                            analysis.progress.tang.filter(p => p > 40 && p <= 60).length,
-                            analysis.progress.tang.filter(p => p > 60 && p <= 80).length,
-                            analysis.progress.tang.filter(p => p > 80).length
-                        ],
-                        borderColor: 'rgba(255, 206, 86, 1)',
-                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-        
-        // 玩家明日方舟等级分布
-        const levelCtx = document.getElementById('levelChart').getContext('2d');
-        const levelLabels = Object.keys(analysis.levels).sort((a, b) => a - b);
-        const levelData = levelLabels.map(level => analysis.levels[level]);
-        
-        new Chart(levelCtx, {
             type: 'bar',
             data: {
-                labels: levelLabels,
+                labels: ['至', 'Sagi', 'Tang'],
                 datasets: [{
-                    label: '玩家数量',
-                    data: levelData,
-                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                    borderColor: 'rgba(102, 126, 234, 1)',
+                    label: '平均进度',
+                    data: [
+                        analysis.progress.zhi.reduce((a, b) => a + b, 0) / analysis.progress.zhi.length,
+                        analysis.progress.sagi.reduce((a, b) => a + b, 0) / analysis.progress.sagi.length,
+                        analysis.progress.tang.reduce((a, b) => a + b, 0) / analysis.progress.tang.length
+                    ],
+                    backgroundColor: 'rgba(118, 75, 162, 0.8)',
+                    borderColor: 'rgba(118, 75, 162, 1)',
                     borderWidth: 2
                 }]
             },
@@ -638,63 +598,59 @@
             }
         });
         
-        // 顶级玩家排行榜 - 先根据uin去重，每个玩家只保留一条记录
-        const uniqueGameData = [...new Map(gameData.map(d => [d.uin, d])).values()];
-        const topPlayers = uniqueGameData
-            .map(d => ({
-                uin: d.uin,
-                device: d.device,
-                level: d.ext1.player.arkLv,
-                体力: d.ext1.player.体力,
-                cash: d.ext1.player.cash,
-                art: d.ext1.player.art,
-                mana: d.ext1.player.mana,
-                tech: d.ext1.player.tech,
-                playTime: d.playTime
-            }))
-            .sort((a, b) => b.cash - a.cash)
-            .slice(0, 20);
+        // 顶级玩家排行榜
+        const topPlayersTable = document.getElementById('topPlayersTable').getElementsByTagName('tbody')[0];
+        topPlayersTable.innerHTML = '';
         
-        const tbody = document.querySelector('#topPlayersTable tbody');
+        const uniqueGameData = [...new Map(gameData.map(d => [d.uin, d])).values()]; // 先对玩家进行去重，每个玩家只保留一条记录
+        const topPlayers = [...uniqueGameData].sort((a, b) => {
+            return b.ext1.player.cash - a.ext1.player.cash; //按钱数排序
+        }).slice(0, 20);
+        
         topPlayers.forEach((player, index) => {
-            const row = tbody.insertRow();
+            const row = topPlayersTable.insertRow();
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${player.uin} (${player.device})</td>
-                <td>${player.level}</td>
-                <td>${player.体力}</td>
-                <td>${player.cash}</td>
-                <td>${player.art}</td>
-                <td>${player.mana}</td>
-                <td>${player.tech}</td>
-                <td>${Math.floor(player.playTime)}分钟</td>
+                <td>${player.ext1.player.arkLv}</td>
+                <td>${player.ext1.player.体力}</td>
+                <td>${player.ext1.player.cash}</td>
+                <td>${player.ext1.player.art}</td>
+                <td>${player.ext1.player.mana}</td>
+                <td>${player.ext1.player.tech}</td>
+                <td>${player.playTime ? Math.floor(player.playTime) + '分钟' : '未知'}</td>
             `;
         });
         
         // 添加动画效果 - 仅对数字内容进行动画
-        const statValues = document.querySelectorAll('.stat-card .value');
-        statValues.forEach((element, index) => {
-            const textContent = element.textContent;
-            // 检查内容是否为数字（包括带单位的数字，如"1分钟"）
-            const numMatch = textContent.match(/^(\d+)/);
-            if (numMatch) {
-                const finalValue = parseInt(numMatch[1]);
-                const unit = textContent.slice(numMatch[0].length);
-                let currentValue = 0;
-                const increment = finalValue / 50;
-                
-                const timer = setInterval(() => {
-                    currentValue += increment;
-                    if (currentValue >= finalValue) {
-                        element.textContent = finalValue + unit;
-                        clearInterval(timer);
-                    } else {
-                        element.textContent = Math.floor(currentValue) + unit;
-                    }
-                }, 30);
-            }
-            // 非数字内容保持原样，不进行动画处理
-        });
+        setTimeout(() => {
+            const statValues = document.querySelectorAll('.stat-card .value');
+            statValues.forEach((element, index) => {
+                const textContent = element.textContent;
+                // 检查内容是否为数字（包括带单位的数字，如"1分钟"）
+                const numMatch = textContent.match(/^(\d+)/);
+                if (numMatch) {
+                    const finalValue = parseInt(numMatch[1]);
+                    const unit = textContent.slice(numMatch[0].length);
+                    let currentValue = 0;
+                    const increment = finalValue / 50;
+                    
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= finalValue) {
+                            element.textContent = finalValue + unit;
+                            clearInterval(timer);
+                        } else {
+                            element.textContent = Math.floor(currentValue) + unit;
+                        }
+                    }, 30);
+                }
+            });
+        }, 100); // 延迟执行以确保数据已更新
+    }
+    
+    // 页面加载完成后加载数据文件
+    window.onload = loadDataFile;
     </script>
 </body>
-</html>```
+</html>
