@@ -78,6 +78,11 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
         
+        .small-chart {
+            height: 300px;
+            max-width: 100%;
+        }
+        
         .chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -186,11 +191,11 @@
                 <canvas id="playerStatsChart"></canvas>
             </div>
             
-            <div class="chart-container">
-                <h2 class="chart-title">女主角好感度对比</h2>
-                <canvas id="heroineAffinityChart"></canvas>
+            <div class="chart-container small-chart">
+                <h2 class="chart-title">日活数量漏斗</h2>
+                <canvas id="dailyActiveChart"></canvas>
             </div>
-            
+
             <div class="chart-container">
                 <h2 class="chart-title">设备类型分布</h2>
                 <canvas id="deviceChart"></canvas>
@@ -198,6 +203,8 @@
             </div>
             
             <div class="chart-container">
+                <h2 class="chart-title">女主角好感度对比</h2>
+                <canvas id="heroineAffinityChart"></canvas>
                 <h2 class="chart-title">玩家进度分布</h2>
                 <canvas id="progressChart"></canvas>
             </div>
