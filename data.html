@@ -419,6 +419,18 @@
         // 将所有初始化代码放在一个函数中
         function initDashboard() {
             const analysis = analyzeData(gameData);
+            
+            // 日活数据
+            const dailyActiveData = [
+                { date: '11.3', count: 19 },
+                { date: '11.4', count: 5 },
+                { date: '11.5', count: 5 },
+                { date: '11.6', count: 2 },
+                { date: '11.7', count: 5 },
+                { date: '11.8', count: 4 },
+                { date: '11.9', count: 1 },
+                { date: '11.10', count: 7 }
+            ];
         
         // 更新统计卡片
         document.getElementById('totalPlayers').textContent = analysis.totalPlayers;
@@ -680,7 +692,62 @@
                     }
                 }
             }
-        });
+            });
+            
+            // 日活数量漏斗图
+            const dailyActiveCtx = document.getElementById('dailyActiveChart').getContext('2d');
+            
+            new Chart(dailyActiveCtx, {
+                type: 'bar',
+                data: {
+                    labels: dailyActiveData.map(item => item.date),
+                    datasets: [{
+                        label: '日活玩家数',
+                        data: dailyActiveData.map(item => item.count),
+                        backgroundColor: '#667eea',
+                        borderColor: '#ffffff',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 8,
+                            cornerRadius: 4,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                stepSize: 5
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 0 // 禁用动画提升性能
+                    }
+                }
+            });
         
         // 顶级玩家排行榜
         const topPlayersTable = document.getElementById('topPlayersTable').getElementsByTagName('tbody')[0];
